@@ -13,7 +13,8 @@
   (cpp/MIX_TrackPlaying track))
 
 (defn set-track [^(:* cpp/MIX_Track) track ^(:* cpp/MIX_Audio) audio]
-  (cpp/MIX_SetTrackAudio track audio))
+  (cpp/MIX_SetTrackAudio track audio)
+  (cpp/MIX_SetTrackGain track 0.5))
 
 (defn play
   ([^(:* cpp/MIX_Track) track]

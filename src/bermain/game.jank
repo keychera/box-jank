@@ -38,7 +38,9 @@ int jank_sdl_run(int argc, char *argv[]) {
         numkeys      (cpp/int)
         kb-state     (cpp/SDL_GetKeyboardState (cpp/& numkeys))
         game         (assoc game
-                            :windows          {:width width :height height :main-scale main-scale}
+                            :windows          {:width      width 
+                                               :height     height 
+                                               :main-scale main-scale}
                             :sdl-renderer-box (cpp/box sdl-renderer)
                             :sdl-window-box   (cpp/box sdl-window)
                             :kb-state-box     (cpp/box kb-state))]
@@ -51,16 +53,26 @@ int jank_sdl_run(int argc, char *argv[]) {
           logical-h 546]
       (cpp/SDL_SetRenderLogicalPresentation sdl-renderer logical-w logical-h cpp/SDL_LOGICAL_PRESENTATION_LETTERBOX))
 
-    (loop [game (engine/init game)]
-      (if-not (:end? game)
-        (let [game' (engine/tick game)]
-          (cpp/SDL_SetRenderDrawColor sdl-renderer 232 232 232 255)
-          (cpp/SDL_RenderClear sdl-renderer)
+    (try 
+      (loop [game (engine/init game)]
+        (if-not (:end? game)
+          (let [game' (try (engine/tick game)
+                           (catch cpp/jank.runtime.object_ref e
+                             (println :caught e)
+                             (assoc game :end? true))
+                           (catch cpp/std.exception e
+                             (println :caught-cpp-exception (.what e))
+                             (assoc game :end? true)))]
+            (cpp/SDL_SetRenderDrawColor sdl-renderer 232 232 232 255)
+            (cpp/SDL_RenderClear sdl-renderer)
 
-          (engine/render! game')
+            (engine/render! game')
 
-          (cpp/SDL_RenderPresent sdl-renderer)
-          (recur game'))
+            (cpp/SDL_RenderPresent sdl-renderer)
+            (recur game'))
+          (doto game (engine/clean!) (clean!))))
+      (catch :default _
+        (println "something happened!")
         (doto game (engine/clean!) (clean!))))
     0))
 

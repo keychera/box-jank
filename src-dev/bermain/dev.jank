@@ -17,7 +17,7 @@
         (#'game/-main)
         (reset! start-atom false))
       (catch :default _
-        (println "error!")
+        (println "something happened until dev!")
         (reset! start-atom false)))))
 
 (defonce _ (dev))
