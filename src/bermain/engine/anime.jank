@@ -1,0 +1,36 @@
+(ns bermain.engine.anime
+  (:require
+   [bermain.sdl3.time :as time]))
+
+(defonce anime-db (atom {}))
+
+(defn play-episode!
+  "play an episode of anime-fn (fn [game dt] game) that will be run by anime/flow
+   anime-fn MUST return game or well you lose the game."
+  [esse-id anime-fn]
+  (let [id (random-uuid)]
+    (swap! anime-db update esse-id
+           (fn [{previous-id ::id}]
+             {::id-to-delete previous-id ::id id ::anime-fn anime-fn}))))
+
+(defn end-episode
+  "end-episode of esse-id anime given a game.
+   unlike play-episode! this is only flag the anime to end during anime/flow"
+  [game esse-id id]
+  (assoc-in game [esse-id id] ::ending))
+
+(defn flow
+  [{::time/keys [delta speed] :as game}]
+  (let [animes @anime-db
+        dt (* delta speed)]
+    (reduce-kv
+     (fn [game' esse-id {:keys [::id-to-delete ::id ::anime-fn]}]
+       (cond-> (if (= (get-in game' [esse-id id]) ::ending)
+                 (do (swap! anime-db dissoc esse-id)
+                     (update game' esse-id dissoc id))
+                 (anime-fn game' id dt))
+         id-to-delete (update esse-id dissoc id-to-delete)))
+     game animes)))
+
+(defn clean! [_game]
+  (reset! anime-db {}))

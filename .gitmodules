@@ -1,0 +1,4 @@
+[submodule "git-deps/odoyle-jank"]
+	path = git-deps/odoyle-jank
+	url = https://github.com/keychera/odoyle-rules
+	branch = odoyle-jank

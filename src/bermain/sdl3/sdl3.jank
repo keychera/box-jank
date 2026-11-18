@@ -1,0 +1,15 @@
+(ns bermain.sdl3.sdl3
+  (:require
+   [bermain.engine.world :as world]
+   [odoyle.rules :as o]))
+
+(def rules
+  (o/ruleset
+   {::sdl3-root
+    [:what [:root ::renderer-box sdl-renderer-box]]}))
+
+(defn world-init [world {:keys [sdl-renderer-box]}]
+  (o/insert world :root ::renderer-box sdl-renderer-box))
+
+(defn init [game]
+  (world/establish game rules world-init))

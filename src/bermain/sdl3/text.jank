@@ -1,0 +1,36 @@
+(ns bermain.sdl3.text
+  (:include
+   "resources.hpp"
+   "SDL3_ttf/SDL_ttf.h")
+  (:require
+   [bermain.sdl3.error :refer [must-be-some must-be-true]]))
+
+;; resource
+;; https://github.com/libsdl-org/SDL_ttf/blob/main/examples/showfps.c
+
+(defn init [game]
+  (must-be-true (cpp/TTF_Init))
+
+  (let [renderer  (cpp/unbox (:* cpp/SDL_Renderer) (:sdl-renderer-box game))
+        engine    (must-be-some (cpp/TTF_CreateRendererTextEngine renderer))
+        font-data (must-be-some (cpp/SDL_IOFromConstMem cpp/res.font_data cpp/res.font_data_size))
+        font      (must-be-some (cpp/TTF_OpenFontIO font-data true 32))
+        text      (do (cpp/TTF_SetFontSize font 16.0)
+                      (must-be-some (cpp/TTF_CreateText engine font "empty" 0)))
+        text-ui   (do (cpp/TTF_SetFontSize font 36.0)
+                      (must-be-some (cpp/TTF_CreateText engine font "42" 0)))]
+    (assoc game
+           ::engine  (cpp/box engine)
+           ::font    (cpp/box font)
+           ::text    (cpp/box text)
+           ::text-ui (cpp/box text-ui))))
+
+(defn destroy-text [^(:* cpp/TTF_Text) text]
+  (cpp/TTF_DestroyText text))
+
+(defn clean! [{:keys [::text ::text-ui ::engine ::font]}]
+  (when text (destroy-text text))
+  (when text-ui (destroy-text text-ui))
+  (when engine (cpp/TTF_DestroyRendererTextEngine (cpp/unbox (:* cpp/TTF_TextEngine) engine)))
+  (when font (cpp/TTF_CloseFont (cpp/unbox (:* cpp/TTF_Font) font)))
+  (cpp/TTF_Quit))

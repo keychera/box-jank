@@ -1,0 +1,14 @@
+(defproject chera/box-jank "0.1-SNAPSHOT"
+  :plugins [[org.jank-lang/lein-jank "2026.10-3"]]
+  :middleware [leiningen.jank/middleware]
+  :source-paths ["src" "git-deps/odoyle-jank/src"]
+  :jank {:include-dirs ["src-cpp"]}
+  :build-dependencies [[org.jank-lang.commons/jank-build "2026.10-1"]]
+  :profiles {:base    {:source-paths ["src-dev"]
+                       :main bermain.dev
+                       :jank {:target-dir         "target/debug"
+                              :optimization-level 0}}
+             :once    {:main bermain.game}
+             :release {:jank {:target-dir         "target/release"
+                              :optimization-level 3}
+                       :main bermain.game}})

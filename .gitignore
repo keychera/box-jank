@@ -1,0 +1,9 @@
+.clj-kondo/*
+!.clj-kondo/config.edn
+.lsp
+.calva
+.cpcache
+.jank-repl-history
+.nrepl-port
+target*
+ship*

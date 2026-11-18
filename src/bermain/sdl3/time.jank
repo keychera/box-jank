@@ -1,0 +1,16 @@
+(ns bermain.sdl3.time
+  (:include
+   "SDL3/SDL.h"))
+
+(defn flow [{:keys [::one-second ::frame-count] :as game}]
+  (let [total (/ (cpp/SDL_GetTicks) 1000.0)
+        delta (- total (::total game 0))
+        game' (assoc game ::total total ::delta delta)]
+    (if (< one-second 1)
+      (assoc game' ::one-second (+ one-second delta) ::frame-count (inc frame-count))
+      (assoc game' ::one-second 0 ::frame-count 0 ::debug-fps frame-count))))
+
+(defn init [game]
+  (assoc game
+         ::speed 1.0
+         ::one-second 0 ::frame-count 0))

@@ -1,0 +1,15 @@
+{
+    "calva.replConnectSequences": [
+        {
+            "name": "jank game dev",
+            "projectType": "generic",
+            "cljsType": "none",
+            "autoSelectForConnect": true,
+            "projectRootPath": ["."],
+            "nReplPortFile": [
+                ".nrepl-port"
+            ]
+        }
+    ],
+    "html.format.wrapAttributes": "preserve-aligned"
+}

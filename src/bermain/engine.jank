@@ -1,0 +1,55 @@
+(ns bermain.engine
+  (:require
+   [bermain.engine.anime :as anime]
+   [bermain.engine.dialogue :as dialogue]
+   [bermain.engine.fact-queue :as fact-queue]
+   [bermain.engine.game-mutator :as game-mutator]
+   [bermain.engine.hitbox :as hitbox]
+   [bermain.engine.input :as input]
+   [bermain.engine.world :as world]
+   [bermain.sdl3.audio :as audio]
+   [bermain.sdl3.error :as error]
+   [bermain.sdl3.image :as image]
+   [bermain.sdl3.sdl3 :as sdl3]
+   [bermain.sdl3.sdl3-input :as sdl3-input]
+   [bermain.sdl3.text :as text]
+   [bermain.sdl3.time :as time]))
+
+(defn init [game]
+  (-> game
+      (time/init)
+      (sdl3/init)
+      (audio/init)
+      (text/init)
+      (image/init)
+
+      (input/init)
+      (hitbox/init)
+      (dialogue/init)
+
+      (#_must-be-last world/init)))
+
+(defn tick [game]
+  (-> game
+      (#_dev-only game-mutator/flow)
+
+      (sdl3-input/poll-events)
+      (input/flow)
+      (fact-queue/flow)
+      (world/tick)
+      (time/flow)
+      (audio/flow)
+      (anime/flow)))
+
+(defn render! [game]
+  (dialogue/render! game)
+  (when (:debug? game)
+    (hitbox/render! game)))
+
+(defn clean! [game]
+  (doto game
+    (anime/clean!)
+    (image/clean!)
+    (text/clean!)
+    (audio/clean!)
+    (error/clean!)))

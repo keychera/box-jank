@@ -1,0 +1,42 @@
+(ns bermain.sdl3.image
+  (:include
+   "SDL3/SDL.h"
+   "SDL3_image/SDL_image.h")
+  (:require
+   [bermain.engine.utils :refer [s->]]
+   [bermain.engine.world :as world]
+   [bermain.sdl3.error :refer [must-be-some]]
+   [bermain.sdl3.sdl3 :as sdl3]
+   [odoyle.rules :as o]))
+
+(defonce textures-atom (atom {}))
+
+(defn destroy-texture [^(:* cpp/SDL_Texture) texture]
+  (cpp/SDL_DestroyTexture texture))
+
+(def rules
+  (o/ruleset
+   {::load-image
+    [:what
+     [:root ::sdl3/renderer-box sdl-renderer-box]
+     [esse-id ::image-stream image-stream]
+     :then
+     (let [previous-texture (get @textures-atom esse-id)]
+       (when previous-texture
+         (destroy-texture previous-texture))
+       (let [renderer (cpp/unbox (:* cpp/SDL_Renderer) sdl-renderer-box)
+             stream   (cpp/unbox (:* cpp/SDL_IOStream) image-stream)
+             texture  (doto (must-be-some (cpp/IMG_LoadTextureTyped_IO renderer stream true "PNG"))
+                        (cpp/SDL_SetTextureScaleMode cpp/SDL_SCALEMODE_NEAREST))]
+         (swap! textures-atom assoc esse-id (cpp/box texture))
+         (s-> session
+              (o/retract esse-id ::image-stream)
+              (o/insert esse-id {::metadata {:width (.-w texture) :height (.-h texture)}}))))]}))
+
+(defn init [game]
+  (world/establish game rules))
+
+(defn clean! [_game]
+  (doseq [[_ texture] @textures-atom]
+    (cpp/SDL_DestroyTexture (cpp/unbox (:* cpp/SDL_Texture) texture)))
+  (reset! textures-atom {}))
