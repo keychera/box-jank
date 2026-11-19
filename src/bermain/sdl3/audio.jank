@@ -14,7 +14,7 @@
 
 (defn set-track [^(:* cpp/MIX_Track) track ^(:* cpp/MIX_Audio) audio]
   (cpp/MIX_SetTrackAudio track audio)
-  (cpp/MIX_SetTrackGain track 0.5))
+  (cpp/MIX_SetTrackGain track 0.2))
 
 (defn play
   ([^(:* cpp/MIX_Track) track]
@@ -50,7 +50,7 @@
            props     (doto (cpp/SDL_CreateProperties)
                        (cpp/SDL_SetNumberProperty cpp/MIX_PROP_PLAY_LOOPS_NUMBER -1))]
        (set-track bgm-track bgm)
-       (play bgm-track props)
+       #_(play bgm-track props)
        (cpp/SDL_DestroyProperties props))]
 
     ::play-tututu

@@ -92,12 +92,18 @@
                            ::dialogue-length   (count-dialogue dialogue)
                            ::dialogue-progress dialogue-progress})))))]
 
-    ::next-dialogue
+    ::progress-dialogue
     [:what
-     [esse-id ::control ::next-dialogue]
+     [esse-id ::control action]
      [esse-id ::play-progress play-progress {:then false}]
      :then
-     (s-> session (o/insert esse-id {::play-progress (inc play-progress)}))]
+     (let [progress (cond 
+                      (= ::next-dialogue action)
+                      (inc play-progress)
+                      
+                      (= ::prev-dialogue action)
+                      (dec play-progress))] 
+       (s-> session (o/insert esse-id {::play-progress progress})))]
 
     ::break-dialogue
     [:what
@@ -148,7 +154,7 @@
   [{world ::world/this
     tt ::time/total
     :as game}]
-  (let [base-x 34.0 base-y 220.0
+  (let [base-x 34.0 base-y 60.0
         text (cpp/unbox (:* cpp/TTF_Text) (::text/text game))]
     (when-let [{:keys [player dialogue-pieces progress]} (query-one world ::animate-dialogue)]
       (doto text
@@ -185,24 +191,34 @@
         :done)))
 
 (def jank-play
-  {:players {:NA {:name "NARRATOR"}
-             :d  {:name "Dofida"}
-             :nf {:name "Noifasui"}}
+  {:players {:x {:name ""}}
    :effects {:funky (fn []
                       (fn [{:keys [target time]}]
-                        (+ target (* 2 (cpp/sin (* 8.0 (float time)))))))
-             :shake (fn []
-                      (fn [{:keys [target]}]
-                        (+ target (- (* 4 (rand)) 2))))}
-   :scripts [[:d "oh."]
-             [:d [" so this is " ["existence." :funky]] :+]
-             [:d "for a language named jank,"]
-             [:d ["this doesn't feel janky at all," :nl "right?"]]
-             [:nf "this is not jank"]
-             [:d [["WHAT?" :shake]] :camera-shake]
-             [:d [:nl "What do you mean this is not jank?!"] :+]
-             [:nf "This is ClojureScript"]
-             [:NA "This man is lying for dramatic effect"]]})
+                        (+ target (* 2 (cpp/sin (* 8.0 (float time)))))))}
+   :scripts [[:x "me before jank"]
+             [:x " ...no" :+]
+             [:x "me before clojure (around 2022)"]
+             [:x [:nl "  there was " ["kotlin" :funky]] :+]
+             ;; bug on second and afterwards :+ not animating
+             ;; bug on reversing dialogue have wrong previous 
+             [:x [:nl "  :> I don't know much about anything"] :+]
+             [:x [:nl "  :>> not aware of the 'host'"] :+]
+             ;; todo padding/margin anime skip
+             [:x [:nl "  :>> not aware of the artifacts" :nl "      produced by my construct"] :+]
+             [:x [:nl "  :>> not aware of what I have"] :+]
+             [:x "me before jank (2026)"]
+             [:x [:nl "  there was clojure"] :+]
+             [:x ", babashka" :+]
+             [:x ", clojurescript" :+]
+             [:x ", basilisp" :+]
+             [:x ", clojureCLR" :+]
+             [:x [:nl "..."] :+]
+             [:x [:nl "  :> I don't know much about anything"] :+]
+             [:x ", but less" :+]
+             [:x [:nl "  :>> appreciating the 'hostedness' of clojure"] :+]
+             [:x [:nl "  :>> appreciating the clarity of artifacts"] :+]
+             [:x [:nl "  :>> appreciating the present"] :+]
+             [:x "now jank"]]})
 
 (comment
   (require '[bermain.engine.game-mutator :refer [inject-facts! debug-tap]])
@@ -217,5 +233,7 @@
            ::play-progress 0}])
 
   (inject-facts! [:root {::control ::next-dialogue}])
+  (inject-facts! [:root {::control ::prev-dialogue}])
+  (inject-facts! [:root {::play-progress 0}])
 
   :-)
