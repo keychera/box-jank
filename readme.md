@@ -1,6 +1,9 @@
 # box-jank
 
-```
+```sh
+# init relevant submodules
+bb prep.bb
+
 lein repl
 
 lein with-profile +once run
