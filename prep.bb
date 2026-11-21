@@ -10,11 +10,11 @@
   [dir submodule-pattern]
   (cond 
     (string? submodule-pattern)
-    (log-shell {:dir dir} "git" "submodule" "update" "--init" submodule-pattern)
+    (log-shell {:dir dir} "git" "submodule" "update" "--init" "--depth" 1 submodule-pattern)
     
     (and (vector? submodule-pattern) (= (count submodule-pattern) 2))
-    (let [[submodule children] submodule-pattern] 
-      (log-shell {:dir dir} "git" "submodule" "update" "--init" submodule)
+    (let [[submodule children] submodule-pattern]
+      (init-submodule-tree dir submodule)
       (doseq [child children]
         (init-submodule-tree submodule child)))))
 
